@@ -4,20 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ลงทะเบียนเพื่อเข้าอบรม Excel</title>
-    <!-- Load Tailwind CSS from CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Load SweetAlert2 for pop-up messages -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Load Inter font from Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Define the font family for the body */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
         }
-
-        /* Add a blurred, faded background image using a pseudo-element */
+        /* เพิ่ม pseudo-element สำหรับภาพพื้นหลังที่เบลอและจางลง */
         body::before {
             content: '';
             position: fixed;
@@ -25,45 +20,36 @@
             left: 0;
             width: 100%;
             height: 100%;
-            /* Using a placeholder image with a fallback for potential link rot */
-            background-image: url('https://placehold.co/1920x1080/E2E8F0/1F2937?text=Excel+Background');
+            /* เปลี่ยนภาพพื้นหลังตามคำขอ */
+            background-image: url('https://i.postimg.cc/dQfN4kHR/image.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
+            /* ทำให้ภาพเบลอและจางลง */
             filter: blur(3px);
             opacity: 0.7;
             z-index: -1;
         }
-
-        /* Ensure form content is not affected by the filter */
+        /* ทำให้เนื้อหาฟอร์มไม่ได้รับผลกระทบจาก filter */
         .content-container {
             position: relative;
             z-index: 10;
         }
-
-        /* Change the background color of the registration box to white */
+        /* เปลี่ยนสีพื้นหลังของกรอบลงทะเบียนเป็นสีขาว */
         .registration-box {
             background-color: #ffffff;
         }
-
         .hidden {
             display: none;
-        }
-
-        /* Styling for the loading button state */
-        .loading {
-            cursor: not-allowed;
-            opacity: 0.6;
         }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen">
 
-    <!-- Logo in the top right corner -->
+    <!-- โลโก้ที่มุมบนขวา -->
     <div class="absolute top-4 right-4 z-20">
-        <!-- Using a placeholder logo with text "Logo" for better user experience if the URL fails -->
-        <img src="https://placehold.co/50x50/334155/F8FAFC?text=Logo" alt="Logo" class="w-1/2 h-auto" style="width: 50px;">
+        <img src="https://i.postimg.cc/q7fGWSWj/SF-Logo-2.png" alt="Logo" class="w-1/2 h-auto" style="width: 50px;">
     </div>
 
     <div class="registration-box p-8 md:p-12 rounded-3xl shadow-2xl max-w-lg w-full m-4 border border-gray-100 bg-opacity-90 content-container">
@@ -75,7 +61,7 @@
         </div>
 
         <form id="registrationForm" class="space-y-6">
-            <!-- Prefix -->
+            <!-- คำนำหน้า -->
             <div>
                 <label class="block text-base font-medium text-gray-700">คำนำหน้า <span class="text-red-500">*</span></label>
                 <div class="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -96,13 +82,13 @@
                         <span class="ml-2 text-base text-gray-700">อื่นๆ</span>
                     </label>
                 </div>
-                <!-- Additional input field for "อื่นๆ" -->
+                <!-- ช่องกรอกเพิ่มเติมสำหรับ "อื่นๆ" -->
                 <div id="otherPrefixInput" class="hidden mt-2">
                     <input type="text" name="otherPrefixText" placeholder="ระบุคำนำหน้า" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base p-2">
                 </div>
             </div>
 
-            <!-- First & Last Name -->
+            <!-- ชื่อ-นามสกุล -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                     <label for="firstName" class="block text-base font-medium text-gray-700">ชื่อ (ภาษาไทย) <span class="text-red-500">*</span></label>
@@ -114,7 +100,7 @@
                 </div>
             </div>
 
-            <!-- Employee ID & Department -->
+            <!-- รหัสพนักงาน & Department -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                     <label for="employeeId" class="block text-base font-medium text-gray-700">รหัสพนักงาน <span class="text-red-500">*</span></label>
@@ -143,7 +129,7 @@
                 </div>
             </div>
 
-            <!-- Training Date and Time -->
+            <!-- วันที่และเวลาอบรม -->
             <div>
                 <label class="block text-base font-medium text-gray-700">โปรดเลือก วันที่และเวลาเข้าอบรม <span class="text-red-500">*</span></label>
                 <select id="trainingDate" name="trainingDate" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-base p-2">
@@ -165,7 +151,7 @@
                         <span class="ml-2 text-base text-gray-700">ไม่มี</span>
                     </label>
                 </div>
-                <!-- Additional fields for users without a Notebook -->
+                <!-- เพิ่มช่องสำหรับผู้ที่ไม่มี Notebook -->
                 <div id="noNotebookOptions" class="hidden mt-4 pl-8 border-l-2 border-gray-200">
                     <label class="block text-base font-medium text-gray-700 mb-2">ท่านต้องการให้ทีมงานจัดเตรียม Notebook ให้หรือไม่?</label>
                     <div class="flex items-center space-x-4">
@@ -181,7 +167,7 @@
                 </div>
             </div>
 
-            <!-- Submit button -->
+            <!-- ปุ่ม Submit -->
             <div>
                 <button type="submit" id="submitBtn" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out">
                     ลงทะเบียน
@@ -197,8 +183,8 @@
             const otherPrefixInputDiv = document.getElementById('otherPrefixInput');
             const noNotebookOptionsDiv = document.getElementById('noNotebookOptions');
 
-            // URL of the Google Apps Script
-            const scriptURL = 'https://script.google.com/macros/s/AKfycbxKoBcC3bCBRWqF4MbiZUyYFGN2KaHC_Fe7UWCogobI1zOS6-eRGSCL32iDROFQPJv5/exec';
+            // ⚠️ **โปรดแทนที่ URL ด้านล่างนี้ด้วย Script URL ที่คุณ Deploy จาก Google Apps Script ของคุณ** ⚠️
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbxX8FCBQqhwN4A2d4jO_5QX2P8Tszjn7hF_BNA6i6Zm9zozeqcq3HJeURDzPiQftU2B/exec';
 
             // Handle displaying the "other prefix" input field
             document.querySelectorAll('input[name="prefix"]').forEach(radio => {
@@ -229,7 +215,7 @@
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault(); // Prevent page reload on form submission
-                
+
                 // Show loading state
                 submitBtn.innerHTML = 'กำลังลงทะเบียน...';
                 submitBtn.classList.add('loading');
@@ -247,7 +233,7 @@
                 if (data.prefix === 'อื่นๆ') {
                     data.prefix = data.otherPrefixText;
                 }
-                
+
                 // Remove unnecessary data before sending
                 delete data.otherPrefixText;
 
@@ -295,13 +281,13 @@
                         // Handle HTTP error responses (e.g., 404, 500)
                         throw new Error(`Server responded with status: ${response.status}`);
                     }
-                    
+
                     form.reset(); // Reset the form
                     otherPrefixInputDiv.classList.add('hidden'); // Hide "other prefix" field
                     noNotebookOptionsDiv.classList.add('hidden'); // Hide "notebook options"
                     document.querySelector('input[name="otherPrefixText"]').removeAttribute('required');
                     document.querySelectorAll('input[name="requestNotebook"]').forEach(r => r.removeAttribute('required'));
-                    
+
                 } catch (error) {
                     // This block will be reached for genuine network errors or server issues
                     console.error('Error!', error.message);
