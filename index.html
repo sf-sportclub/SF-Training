@@ -4,14 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ลงทะเบียนเพื่อเข้าอบรม Excel</title>
+    <!-- Load Tailwind CSS from CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load SweetAlert2 for pop-up messages -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Load Inter font from Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Define the font family for the body */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
         }
+
         /* Add a blurred, faded background image using a pseudo-element */
         body::before {
             content: '';
@@ -20,7 +25,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('https://i.postimg.cc/dQfN4kHR/image.png');
+            /* Using a placeholder image with a fallback for potential link rot */
+            background-image: url('https://placehold.co/1920x1080/E2E8F0/1F2937?text=Excel+Background');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -29,18 +35,22 @@
             opacity: 0.7;
             z-index: -1;
         }
+
         /* Ensure form content is not affected by the filter */
         .content-container {
             position: relative;
             z-index: 10;
         }
+
         /* Change the background color of the registration box to white */
         .registration-box {
             background-color: #ffffff;
         }
+
         .hidden {
             display: none;
         }
+
         /* Styling for the loading button state */
         .loading {
             cursor: not-allowed;
@@ -52,7 +62,8 @@
 
     <!-- Logo in the top right corner -->
     <div class="absolute top-4 right-4 z-20">
-        <img src="https://i.postimg.cc/q7fGWSWj/SF-Logo-2.png" alt="Logo" class="w-1/2 h-auto" style="width: 50px;">
+        <!-- Using a placeholder logo with text "Logo" for better user experience if the URL fails -->
+        <img src="https://placehold.co/50x50/334155/F8FAFC?text=Logo" alt="Logo" class="w-1/2 h-auto" style="width: 50px;">
     </div>
 
     <div class="registration-box p-8 md:p-12 rounded-3xl shadow-2xl max-w-lg w-full m-4 border border-gray-100 bg-opacity-90 content-container">
@@ -242,7 +253,7 @@
 
                 // Check if 'requestNotebook' has a value and add it to the data to be sent
                 if (data.hasNotebook === 'มี') {
-                     data.requestNotebook = 'N/A';
+                    data.requestNotebook = 'N/A';
                 }
 
                 // Get current timestamp and add it to the data
@@ -250,36 +261,47 @@
 
                 try {
                     // Send data to Google Apps Script using fetch
+                    // NOTE: Removed 'mode: no-cors' to allow checking the server response
                     const response = await fetch(scriptURL, {
                         method: 'POST',
                         body: JSON.stringify(data),
                         headers: {
                             'Content-Type': 'application/json'
-                        },
-                        mode: 'no-cors' // Important for Google Apps Script
+                        }
                     });
 
-                    // We cannot directly check response.ok in 'no-cors' mode, so we assume success.
-                    // If a connection error occurs, the fetch will throw an error and fall into the catch block.
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'ลงทะเบียนสำเร็จ!',
-                        text: 'ขอบคุณสำหรับการลงทะเบียน ทางทีมงานจะติดต่อกลับไปทางอีเมลเพื่อยืนยันการเข้าร่วมอีกครั้งค่ะ',
-                        showConfirmButton: false,
-                        timer: 5000
-                    });
-                    form.reset(); // Reset the form
-                    otherPrefixInputDiv.classList.add('hidden'); // Hide "other prefix" field
-                    noNotebookOptionsDiv.classList.add('hidden'); // Hide "notebook options"
-                    document.querySelector('input[name="otherPrefixText"]').removeAttribute('required');
-                    document.querySelectorAll('input[name="requestNotebook"]').forEach(r => r.removeAttribute('required'));
+                    // Check if the response was successful
+                    if (response.ok) {
+                        // The server successfully received and processed the data
+                        const result = await response.json();
+                        if (result.status === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'ลงทะเบียนสำเร็จ!',
+                                text: 'ขอบคุณสำหรับการลงทะเบียน ทางทีมงานจะติดต่อกลับไปทางอีเมลเพื่อยืนยันการเข้าร่วมอีกครั้งค่ะ',
+                                showConfirmButton: false,
+                                timer: 5000
+                            });
+                            form.reset(); // Reset the form
+                            otherPrefixInputDiv.classList.add('hidden'); // Hide "other prefix" field
+                            noNotebookOptionsDiv.classList.add('hidden'); // Hide "notebook options"
+                            document.querySelector('input[name="otherPrefixText"]').removeAttribute('required');
+                            document.querySelectorAll('input[name="requestNotebook"]').forEach(r => r.removeAttribute('required'));
+                        } else {
+                            // The server returned an error status
+                            throw new Error(result.message || 'การลงทะเบียนไม่สำเร็จ');
+                        }
+                    } else {
+                        // The server returned an unsuccessful HTTP status code
+                        throw new Error(`Server returned status: ${response.status}`);
+                    }
                     
                 } catch (error) {
                     console.error('Error!', error.message);
                     Swal.fire({
                         icon: 'error',
                         title: 'ลงทะเบียนไม่สำเร็จ',
-                        text: 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง หรือติดต่อผู้ดูแลระบบ'
+                        text: `เกิดข้อผิดพลาดในการส่งข้อมูล: ${error.message}`
                     });
                 } finally {
                     // Restore the button to its normal state
