@@ -160,11 +160,11 @@
   </div>
 
   <script>
-    // --- CONFIG: ใส่ Web App URL ของคุณ ---
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby_IOodCljW1JtUZ-RQeqA-YiED9SIxtRaBjk7V1QJsrR6XWHlwNCeiK8FQhKQ0Q5-3/exec";
-    // (ถ้าตั้ง token ใน GAS) เพิ่มใน payload: token: "YOUR_SECRET"
+    // --------- CONFIG ----------
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw0zSBgPJFnZMM-MU76S7lYKg9v6lMYGORgOiNFpV6gqSOc3KiYq52wMCLlHcr8aHc/exec";
+    // ถ้าใน GAS มีการตรวจ token ให้เพิ่มใน payload: token: "YOUR_SECRET"
 
-    // แสดง/ซ่อน "อื่นๆ" ของคำนำหน้า
+    // UI: แสดง/ซ่อน "อื่นๆ" ของคำนำหน้า
     document.querySelectorAll('input[name="prefix"]').forEach(r => {
       r.addEventListener('change', () => {
         const isOther = document.getElementById('otherPrefix').checked;
@@ -172,7 +172,7 @@
       });
     });
 
-    // แสดง/ซ่อนตัวเลือกโน้ตบุ๊กเมื่อเลือก "ไม่มี"
+    // UI: แสดง/ซ่อนตัวเลือกโน้ตบุ๊กเมื่อเลือก "ไม่มี"
     const noNbRadio = document.getElementById('noNotebookRadio');
     const hasNbYes = document.querySelector('input[name="hasNotebook"][value="มี"]');
     [noNbRadio, hasNbYes].forEach(el => el.addEventListener('change', toggleNotebookOptions));
@@ -181,59 +181,93 @@
       document.getElementById('noNotebookOptions').classList.toggle('hidden', !show);
     }
 
-    // ส่งฟอร์มด้วย fetch → GAS doPost (Content-Type: text/plain)
-    document.getElementById('registrationForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // Helper: timeout ให้ fetch ยกเลิกเอง (กันค้าง)
+    function fetchWithTimeout(resource, options = {}) {
+      const { timeout = 15000 } = options;
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeout);
+      return fetch(resource, { ...options, signal: controller.signal })
+        .finally(() => clearTimeout(id));
+    }
 
-      // คำนำหน้า
-      const prefixChecked = document.querySelector('input[name="prefix"]:checked');
-      let prefix = prefixChecked ? prefixChecked.value : '';
+    // ยิงแบบ text/plain (เลี่ยง preflight)
+    async function postTextPlain(payload) {
+      const res = await fetchWithTimeout(WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+        timeout: 15000
+      });
+      return res;
+    }
+
+    // Fallback: ยิงแบบ form-encoded (เผื่อบางบราวเซอร์/ปลั๊กอิน)
+    async function postFormEncoded(payload) {
+      const params = new URLSearchParams({ data: JSON.stringify(payload) });
+      const res = await fetchWithTimeout(WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: params.toString(),
+        timeout: 15000
+      });
+      return res;
+    }
+
+    // สร้าง payload จากฟอร์ม
+    function buildPayload() {
+      let prefix = document.querySelector('input[name="prefix"]:checked')?.value || '';
       if (document.getElementById('otherPrefix').checked) {
         const otherText = (document.getElementById('otherPrefixText').value || '').trim();
         if (otherText) prefix = otherText;
       }
-
-      // ค่าฟิลด์อื่นๆ
       const firstName   = document.getElementById('firstName').value.trim();
       const lastName    = document.getElementById('lastName').value.trim();
       const employeeId  = document.getElementById('employeeId').value.trim();
       const department  = document.getElementById('department').value;
       const trainingDate= document.getElementById('trainingDate').value;
-
       const hasNotebookStr = (document.querySelector('input[name="hasNotebook"]:checked')?.value || '');
-      const hasNotebook = hasNotebookStr === 'มี'; // แปลงเป็น boolean
-
+      const hasNotebook = hasNotebookStr === 'มี';
       const requestNotebook = (document.querySelector('input[name="requestNotebook"]:checked')?.value || '');
 
+      return { prefix, firstName, lastName, employeeId, department, trainingDate, hasNotebook, requestNotebook };
+    }
+
+    // ส่งฟอร์ม
+    document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const payload = buildPayload();
+
       // ตรวจความครบถ้วนฝั่ง client
-      if (!prefix || !firstName || !lastName || !employeeId || !department || !trainingDate || hasNotebookStr === '') {
+      if (!payload.prefix || !payload.firstName || !payload.lastName || !payload.employeeId || !payload.department || !payload.trainingDate || (typeof payload.hasNotebook !== 'boolean')) {
         Swal.fire('กรอกไม่ครบ', 'กรุณากรอกข้อมูลที่มี * ให้ครบ', 'warning');
         return;
       }
 
-      const payload = {
-        prefix, firstName, lastName, employeeId, department, trainingDate,
-        hasNotebook, requestNotebook
-        // , token: "YOUR_SECRET"
-      };
-
       try {
         Swal.fire({title:'กำลังบันทึก...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
-        const res = await fetch(WEB_APP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ✅ เลี่ยง preflight
-          body: JSON.stringify(payload)
-        });
-        const json = await res.json();
+
+        // ลองวิธีหลัก: text/plain
+        let res;
+        try {
+          res = await postTextPlain(payload);
+        } catch (e1) {
+          // ถ้า network ล้ม → ลอง fallback
+          res = await postFormEncoded(payload);
+        }
+
+        let json = {};
+        try { json = await res.json(); } catch (e2) {}
+
         Swal.close();
 
-        if (json.status === 'success' || json.ok) {
+        if (json && (json.status === 'success' || json.ok)) {
           Swal.fire('สำเร็จ', json.message || 'บันทึกเรียบร้อย', 'success');
           e.target.reset();
           document.getElementById('otherPrefixInput').classList.add('hidden');
           document.getElementById('noNotebookOptions').classList.add('hidden');
         } else {
-          Swal.fire('ผิดพลาด', json.message || 'บันทึกไม่สำเร็จ', 'error');
+          Swal.fire('ผิดพลาด', (json && json.message) ? json.message : 'บันทึกไม่สำเร็จ หรือปลายทางไม่ตอบกลับเป็น JSON', 'error');
         }
       } catch (err) {
         Swal.close();
