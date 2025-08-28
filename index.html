@@ -41,19 +41,19 @@
         <label class="block text-base font-medium text-gray-700">คำนำหน้า <span class="text-red-500">*</span></label>
         <div class="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
           <label class="flex items-center">
-            <input type="radio" name="prefix" value="นาย" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500" required>
+            <input type="radio" name="prefix" value="นาย" class="h-5 w-5 text-indigo-600" required>
             <span class="ml-2 text-base text-gray-700">นาย</span>
           </label>
           <label class="flex items-center">
-            <input type="radio" name="prefix" value="นางสาว" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500">
+            <input type="radio" name="prefix" value="นางสาว" class="h-5 w-5 text-indigo-600">
             <span class="ml-2 text-base text-gray-700">นางสาว</span>
           </label>
           <label class="flex items-center">
-            <input type="radio" name="prefix" value="นาง" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500">
+            <input type="radio" name="prefix" value="นาง" class="h-5 w-5 text-indigo-600">
             <span class="ml-2 text-base text-gray-700">นาง</span>
           </label>
           <label class="flex items-center">
-            <input type="radio" name="prefix" value="อื่นๆ" id="otherPrefix" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500">
+            <input type="radio" name="prefix" value="อื่นๆ" id="otherPrefix" class="h-5 w-5 text-indigo-600">
             <span class="ml-2 text-base text-gray-700">อื่นๆ</span>
           </label>
         </div>
@@ -123,11 +123,11 @@
         <label class="block text-base font-medium text-gray-700">ท่านมี Notebook หรือไม่ ? (ใช้สำหรับ Workshop) <span class="text-red-500">*</span></label>
         <div class="mt-2 flex items-center space-x-4">
           <label class="flex items-center">
-            <input type="radio" name="hasNotebook" value="มี" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500" required>
+            <input type="radio" name="hasNotebook" value="มี" class="h-5 w-5 text-indigo-600" required>
             <span class="ml-2 text-base text-gray-700">มี</span>
           </label>
           <label class="flex items-center">
-            <input type="radio" name="hasNotebook" value="ไม่มี" id="noNotebookRadio" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500">
+            <input type="radio" name="hasNotebook" value="ไม่มี" id="noNotebookRadio" class="h-5 w-5 text-indigo-600">
             <span class="ml-2 text-base text-gray-700">ไม่มี</span>
           </label>
         </div>
@@ -137,11 +137,11 @@
           <label class="block text-base font-medium text-gray-700 mb-2">ท่านต้องการให้ทีมงานจัดเตรียม Notebook ให้หรือไม่?</label>
           <div class="flex items-center space-x-4">
             <label class="flex items-center">
-              <input type="radio" name="requestNotebook" value="ต้องการ" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500">
+              <input type="radio" name="requestNotebook" value="ต้องการ" class="h-5 w-5 text-indigo-600">
               <span class="ml-2 text-base text-gray-700">ต้องการ <span class="text-red-500 text-xs font-bold">(มีจำนวนจำกัด)</span></span>
             </label>
             <label class="flex items-center">
-              <input type="radio" name="requestNotebook" value="ไม่ต้องการ" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500">
+              <input type="radio" name="requestNotebook" value="ไม่ต้องการ" class="h-5 w-5 text-indigo-600">
               <span class="ml-2 text-base text-gray-700">ไม่ต้องการ</span>
             </label>
           </div>
@@ -155,14 +155,13 @@
     </form>
 
     <p class="text-xs text-gray-400 mt-6 text-center">
-      เมื่อกด “ส่งแบบฟอร์ม” ข้อมูลจะถูกส่งไปยัง Google Apps Script (REST API) และบันทึกลง Google Sheet
+      เมื่อกด “ส่งแบบฟอร์ม” ระบบจะส่งข้อมูลไปยัง Google Apps Script และบันทึกลง Google Sheet
     </p>
   </div>
 
   <script>
     // --------- CONFIG ----------
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw0zSBgPJFnZMM-MU76S7lYKg9v6lMYGORgOiNFpV6gqSOc3KiYq52wMCLlHcr8aHc/exec";
-    // ถ้าใน GAS มีการตรวจ token ให้เพิ่มใน payload: token: "YOUR_SECRET"
 
     // UI: แสดง/ซ่อน "อื่นๆ" ของคำนำหน้า
     document.querySelectorAll('input[name="prefix"]').forEach(r => {
@@ -179,38 +178,6 @@
     function toggleNotebookOptions(){
       const show = noNbRadio.checked;
       document.getElementById('noNotebookOptions').classList.toggle('hidden', !show);
-    }
-
-    // Helper: timeout ให้ fetch ยกเลิกเอง (กันค้าง)
-    function fetchWithTimeout(resource, options = {}) {
-      const { timeout = 15000 } = options;
-      const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), timeout);
-      return fetch(resource, { ...options, signal: controller.signal })
-        .finally(() => clearTimeout(id));
-    }
-
-    // ยิงแบบ text/plain (เลี่ยง preflight)
-    async function postTextPlain(payload) {
-      const res = await fetchWithTimeout(WEB_APP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload),
-        timeout: 15000
-      });
-      return res;
-    }
-
-    // Fallback: ยิงแบบ form-encoded (เผื่อบางบราวเซอร์/ปลั๊กอิน)
-    async function postFormEncoded(payload) {
-      const params = new URLSearchParams({ data: JSON.stringify(payload) });
-      const res = await fetchWithTimeout(WEB_APP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-        body: params.toString(),
-        timeout: 15000
-      });
-      return res;
     }
 
     // สร้าง payload จากฟอร์ม
@@ -232,7 +199,7 @@
       return { prefix, firstName, lastName, employeeId, department, trainingDate, hasNotebook, requestNotebook };
     }
 
-    // ส่งฟอร์ม
+    // ส่งฟอร์ม (no-cors: จะไม่อ่านผลตอบกลับได้)
     document.getElementById('registrationForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -245,30 +212,22 @@
       }
 
       try {
-        Swal.fire({title:'กำลังบันทึก...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+        Swal.fire({title:'กำลังส่งข้อมูล...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
 
-        // ลองวิธีหลัก: text/plain
-        let res;
-        try {
-          res = await postTextPlain(payload);
-        } catch (e1) {
-          // ถ้า network ล้ม → ลอง fallback
-          res = await postFormEncoded(payload);
-        }
+        await fetch(WEB_APP_URL, {
+          method: 'POST',
+          mode: 'no-cors', // ✅ กัน CORS ล้ม
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
 
-        let json = {};
-        try { json = await res.json(); } catch (e2) {}
-
+        // หมายเหตุ: โหมด no-cors จะอ่านผลลัพธ์ไม่ได้ (response opaque)
         Swal.close();
+        Swal.fire('ส่งคำขอแล้ว', 'ระบบจะบันทึกภายในไม่กี่วินาที', 'success');
+        e.target.reset();
+        document.getElementById('otherPrefixInput').classList.add('hidden');
+        document.getElementById('noNotebookOptions').classList.add('hidden');
 
-        if (json && (json.status === 'success' || json.ok)) {
-          Swal.fire('สำเร็จ', json.message || 'บันทึกเรียบร้อย', 'success');
-          e.target.reset();
-          document.getElementById('otherPrefixInput').classList.add('hidden');
-          document.getElementById('noNotebookOptions').classList.add('hidden');
-        } else {
-          Swal.fire('ผิดพลาด', (json && json.message) ? json.message : 'บันทึกไม่สำเร็จ หรือปลายทางไม่ตอบกลับเป็น JSON', 'error');
-        }
       } catch (err) {
         Swal.close();
         Swal.fire('ผิดพลาด', 'เครือข่ายหรือเซิร์ฟเวอร์มีปัญหา: ' + err.message, 'error');
