@@ -155,14 +155,14 @@
     </form>
 
     <p class="text-xs text-gray-400 mt-6 text-center">
-      เมื่อกด “ส่งแบบฟอร์ม” ข้อมูลจะถูกส่งไปยังระบบ Google Apps Script และบันทึกลง Google Sheet ทันที
+      เมื่อกด “ส่งแบบฟอร์ม” ข้อมูลจะถูกส่งไปยัง Google Apps Script (REST API) และบันทึกลง Google Sheet
     </p>
   </div>
 
   <script>
     // --- CONFIG: ใส่ Web App URL ของคุณ ---
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby_IOodCljW1JtUZ-RQeqA-YiED9SIxtRaBjk7V1QJsrR6XWHlwNCeiK8FQhKQ0Q5-3/exec";
-    // (ถ้าคุณตั้ง token ตรวจฝั่ง GAS เพิ่ม) const SECRET_TOKEN = "YOUR_SECRET";
+    // (ถ้าตั้ง token ใน GAS) เพิ่มใน payload: token: "YOUR_SECRET"
 
     // แสดง/ซ่อน "อื่นๆ" ของคำนำหน้า
     document.querySelectorAll('input[name="prefix"]').forEach(r => {
@@ -181,7 +181,7 @@
       document.getElementById('noNotebookOptions').classList.toggle('hidden', !show);
     }
 
-    // ส่งฟอร์มด้วย fetch → GAS doPost
+    // ส่งฟอร์มด้วย fetch → GAS doPost (Content-Type: text/plain)
     document.getElementById('registrationForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -201,9 +201,8 @@
       const trainingDate= document.getElementById('trainingDate').value;
 
       const hasNotebookStr = (document.querySelector('input[name="hasNotebook"]:checked')?.value || '');
-      const hasNotebook = hasNotebookStr === 'มี'; // ให้เป็น boolean ตามที่ต้องการ
+      const hasNotebook = hasNotebookStr === 'มี'; // แปลงเป็น boolean
 
-      // ตัวเลือกเสริม
       const requestNotebook = (document.querySelector('input[name="requestNotebook"]:checked')?.value || '');
 
       // ตรวจความครบถ้วนฝั่ง client
@@ -213,16 +212,16 @@
       }
 
       const payload = {
-        prefix, firstName, lastName, employeeId, department, trainingDate, hasNotebook,
-        requestNotebook // ส่งไปด้วยได้ (ฝั่ง GAS จะใช้หรือไม่ใช้ก็ได้)
-        // , token: SECRET_TOKEN
+        prefix, firstName, lastName, employeeId, department, trainingDate,
+        hasNotebook, requestNotebook
+        // , token: "YOUR_SECRET"
       };
 
       try {
         Swal.fire({title:'กำลังบันทึก...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
         const res = await fetch(WEB_APP_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ✅ เลี่ยง preflight
           body: JSON.stringify(payload)
         });
         const json = await res.json();
