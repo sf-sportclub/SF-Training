@@ -10,43 +10,28 @@
   <script>
     tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'] } } } };
   </script>
-
-  <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-  <style>
-    ::-webkit-scrollbar{ width:8px;background:#f0f4f8;}
-    ::-webkit-scrollbar-thumb{ background:#94a3b8;border-radius:10px;border:2px solid #f0f4f8;}
-    ::-webkit-scrollbar-thumb:hover{ background:#64748b;}
-    body{ font-family:'Inter',sans-serif;}
-    input[type="text"],input[type="date"],input[type="number"],select,textarea{
-      font-size:1rem;padding:.75rem 1rem;
-    }
-    @media (min-width:640px){
-      input[type="text"],input[type="date"],input[type="number"],select,textarea{
-        font-size:.875rem;padding:.5rem .75rem;
-      }
-    }
-  </style>
 </head>
-<body class="bg-[url('https://firebasestorage.googleapis.com/v0/b/pichayut-40dd2.firebasestorage.app/o/painting-mountain-lake-with-mountain-background.jpg?alt=media&token=c15af5c2-411e-4249-88f6-057d956b1238')] bg-cover bg-center bg-fixed flex flex-col min-h-screen">
+<body class="bg-gray-100 flex flex-col min-h-screen">
 
   <div class="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-    <div class="max-w-xl mx-auto bg-white/90 rounded-3xl shadow-xl p-6 sm:p-8">
+    <div class="max-w-xl mx-auto bg-white rounded-3xl shadow-xl p-6 sm:p-8">
       <h1 class="text-3xl sm:text-4xl font-extrabold text-center text-slate-800 mb-2">
         SF Sport club Run Challenge 2025 (สำนักงานใหญ่)
       </h1>
       <p class="text-center text-slate-500 mb-8">บันทึกผลการวิ่งสำหรับสมาชิก</p>
 
-      <button id="showRulesBtn" class="w-full flex justify-center py-3 px-4 mb-6 rounded-xl shadow-sm text-base font-bold text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
-        📜 อ่านกฎและเงื่อนไขก่อนบันทึกผลการวิ่ง 🏃‍♂️
-      </button>
+      <!-- ฟอร์มส่งตรงไปยัง GAS -->
+      <form id="runChallengeForm"
+            method="POST"
+            action="https://script.google.com/macros/s/AKfycbxpT3UJQ11l10z6rCQT_lxeuiwd-LsyX6uHnyuYZYzNpybAqWjN1wNYiAtSCAMpLz8NxA/exec"
+            enctype="multipart/form-data"
+            target="uploadFrame"
+            class="space-y-6">
 
-      <form id="runChallengeForm" class="space-y-6">
-        <!-- ทีม -->
         <div>
-          <label for="teamName" class="block font-medium text-slate-700">ทีม</label>
-          <select id="teamName" name="teamName" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-xl shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+          <label class="block font-medium text-slate-700">ทีม</label>
+          <select name="teamName" required class="mt-1 block w-full border border-slate-300 rounded-xl px-3 py-2">
             <option value="">-- เลือกทีม --</option>
             <option value="ทีม ฟาๆ">ทีม ฟาๆ</option>
             <option value="ทีมมาๆ">ทีมมาๆ</option>
@@ -54,223 +39,69 @@
           </select>
         </div>
 
-        <!-- ชื่อ-นามสกุล -->
         <div>
-          <label for="fullName" class="block font-medium text-slate-700">ชื่อ-นามสกุล (ผู้ส่งผลวิ่ง)</label>
-          <input type="text" id="fullName" name="fullName" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-xl shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-        </div>
-
-        <!-- วันที่วิ่ง -->
-        <div>
-          <label for="runningDate" class="block font-medium text-slate-700">วันที่วิ่ง</label>
-          <input type="date" id="runningDate" name="runningDate" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-xl shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-        </div>
-
-        <!-- ระยะทาง -->
-        <div>
-          <label for="distance" class="block font-medium text-slate-700">ระยะทางที่วิ่ง (กิโลเมตร)</label>
-          <input type="number" id="distance" name="distance" step="0.01" min="0" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-xl shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-        </div>
-
-        <!-- รูปหลักฐาน -->
-        <div>
-          <label for="imageProof" class="block font-medium text-slate-700">อัปโหลดหลักฐานภาพ <span class="text-red-500">*</span></label>
-          <p class="text-sm text-slate-500 mt-1 mb-2">ต้องแสดงข้อมูล ระยะทาง / เวลา / วันที่ ชัดเจน</p>
-          <input type="file" id="imageProof" name="imageProof" accept="image/*" required class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-          <div id="imagePreviewContainer" class="mt-4 hidden">
-            <p class="font-medium text-slate-700 mb-2">รูปภาพที่อัปโหลด:</p>
-            <img id="imagePreview" src="#" alt="Image Proof Preview" class="w-full h-auto max-h-64 object-contain rounded-xl shadow-md">
-          </div>
-        </div>
-
-        <!-- หมายเหตุ -->
-        <div>
-          <label for="notes" class="block font-medium text-slate-700">หมายเหตุเพิ่มเติม (ถ้ามี)</label>
-          <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-xl shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+          <label class="block font-medium text-slate-700">ชื่อ-นามสกุล</label>
+          <input type="text" name="fullName" required class="mt-1 block w-full border border-slate-300 rounded-xl px-3 py-2">
         </div>
 
         <div>
-          <button type="submit" id="submitBtn" class="w-full flex justify-center py-3 px-4 rounded-xl shadow-sm text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-            บันทึกผลวิ่ง
-          </button>
+          <label class="block font-medium text-slate-700">วันที่วิ่ง</label>
+          <input type="date" name="runningDate" required class="mt-1 block w-full border border-slate-300 rounded-xl px-3 py-2">
         </div>
+
+        <div>
+          <label class="block font-medium text-slate-700">ระยะทาง (กม.)</label>
+          <input type="number" name="distance" step="0.01" min="0" required class="mt-1 block w-full border border-slate-300 rounded-xl px-3 py-2">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700">อัปโหลดหลักฐานภาพ</label>
+          <input type="file" name="imageProof" accept="image/*" required class="mt-1 block w-full">
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-700">หมายเหตุเพิ่มเติม</label>
+          <textarea name="notes" rows="3" class="mt-1 block w-full border border-slate-300 rounded-xl px-3 py-2"></textarea>
+        </div>
+
+        <button type="submit" id="submitBtn"
+                class="w-full py-3 rounded-xl text-white bg-blue-600 hover:bg-blue-700 font-bold">
+          บันทึกผลวิ่ง
+        </button>
       </form>
+
+      <!-- iframe ซ่อน -->
+      <iframe name="uploadFrame" id="uploadFrame" style="display:none;"></iframe>
     </div>
   </div>
 
-  <footer class="bg-white/90 text-center p-4 shadow-inner text-slate-500 text-sm mt-8">
-    © Copyright <span id="currentYear"></span>, SF Sport club
+  <footer class="bg-white text-center p-4 text-slate-500 text-sm mt-8">
+    © <span id="currentYear"></span>, SF Sport club
   </footer>
 
   <script>
-    // ====== ตั้งค่า URL ของ Apps Script (ลิงก์ใหม่ของคุณ) ======
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxwr5XrUQqlFquKZIfpzcM5MiCfT1iNVDXQ8IuEMte05EkgtF9Z_H6X-x45dpTYIxwdlg/exec";
-
-    // ====== DOM refs ======
     document.getElementById('currentYear').textContent = new Date().getFullYear();
     const form = document.getElementById('runChallengeForm');
     const submitBtn = document.getElementById('submitBtn');
-    const imageInput = document.getElementById('imageProof');
-    const imagePreview = document.getElementById('imagePreview');
-    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-    const showRulesBtn = document.getElementById('showRulesBtn');
 
-    // ====== Rules Popup Content (ยกมาจากของเดิม) ======
-    const rulesContent = `
-      <div class="text-left text-slate-700 leading-relaxed p-4">
-        <h2 class="text-xl sm:text-2xl font-extrabold text-center text-slate-800 mb-4">กฎกติกาการแข่งขัน</h2>
-
-        <div>
-          <h3 class="text-lg font-bold text-blue-700 mb-2">1. ระยะเวลาการแข่งขัน</h3>
-          <ul class="list-disc list-inside space-y-1">
-            <li>เริ่มสะสมระยะตั้งแต่: วันที่ 1 กันยายน – 30 กันยายน 2568</li>
-            <li>รวมระยะเวลา: 5 สัปดาห์</li>
-            <li>ปิดรับผล: วันที่ 30 กันยายน เวลา 23:59 น.</li>
-          </ul>
-        </div>
-
-        <div class="border-t border-slate-200 pt-4 mt-4">
-          <h3 class="text-lg font-bold text-blue-700 mb-2">2. ระยะทางที่นับผล</h3>
-          <ul class="list-disc list-inside space-y-1">
-            <li>การเดินหรือวิ่งต้องเป็นการออกกำลังกายจริง ไม่อนุญาตให้ใช้วิธีใดที่ช่วยเพิ่มระยะทางอย่างไม่เหมาะสม</li>
-            <li>ห้ามใช้จักรยาน สกู๊ตเตอร์ รถยนต์ หรืออุปกรณ์อื่น ๆ ในการเพิ่มระยะทาง</li>
-          </ul>
-        </div>
-
-        <div class="border-t border-slate-200 pt-4 mt-4">
-          <h3 class="text-lg font-bold text-blue-700 mb-2">3. เงื่อนไขการแข่งขัน</h3>
-          <ul class="list-disc list-inside space-y-1">
-            <li>ผู้เข้าร่วมต้องบันทึกภาพหน้าจอ (แคปหน้าจอ) ผลการวิ่งจากแอปพลิเคชันที่ใช้บันทึก</li>
-            <li>กรอกข้อมูลและแนบหลักฐานผ่าน Google Form ที่กำหนด</li>
-            <li>การส่งผลวิ่งต้องดำเนินการภายในระยะเวลาไม่เกิน 2 วัน หลังจากวันที่วิ่งเสร็จ</li>
-          </ul>
-        </div>
-
-        <div class="border-t border-slate-200 pt-4 mt-4">
-          <h3 class="text-lg font-bold text-blue-700 mb-2">4. หลักฐานการวิ่ง</h3>
-          <p>ผู้เข้าร่วมต้องอัปโหลด <b>ภาพหน้าจอจากแอปพลิเคชันวิ่ง</b> (Huawei Health, adidas Running: Run Tracker, Apple Health, Fitbit, Garmin Connect, Nike Run Club)</p>
-          <p class="font-semibold mt-2">ภาพต้องแสดงข้อมูลครบถ้วนดังนี้:</p>
-          <ul class="list-disc list-inside space-y-1 ml-4">
-            <li>วันที่วิ่ง</li>
-            <li>ระยะทาง</li>
-            <li>เวลา</li>
-            <li>เส้นทาง (GPS Map ถ้ามี)</li>
-          </ul>
-          <p class="mt-2 text-sm italic text-slate-500">*กรณีใช้แอปอื่นที่ไม่รองรับ ให้ถ่ายภาพหน้าจอพร้อมวันที่บนอุปกรณ์</p>
-        </div>
-
-        <div class="border-t border-slate-200 pt-4 mt-4">
-          <h3 class="text-lg font-bold text-blue-700 mb-2">5. การตรวจสอบความถูกต้อง</h3>
-          <p>ทีมงานมีสิทธิ์เรียกตรวจสอบข้อมูลเพิ่มเติม เช่น:</p>
-          <ul class="list-disc list-inside space-y-1 ml-4">
-            <li>ประวัติการวิ่งในแอป</li>
-            <li>Screenshot เพิ่มเติม</li>
-            <li>หากหลักฐานไม่ชัดเจนหรือมีข้อสงสัย ทีมงานอาจขอข้อมูลเพิ่มเติม และขอสงวนสิทธิ์ในการไม่นับผลวิ่งหากไม่สามารถยืนยันความถูกต้องได้</li>
-          </ul>
-        </div>
-
-        <div class="border-t border-slate-200 pt-4 mt-4">
-          <h3 class="text-lg font-bold text-blue-700 mb-2">6. พฤติกรรมที่ถือว่า “โกง”</h3>
-          <ul class="list-disc list-inside space-y-1">
-            <li>แก้ไข/ตัดต่อรูปภาพหลักฐาน</li>
-            <li>ใช้ยานพาหนะหรืออุปกรณ์อื่นเพื่อเพิ่มระยะทาง</li>
-            <li>ใช้โปรแกรมจำลองระยะทาง</li>
-            <li>ส่งผลวิ่งของผู้อื่นมาแทน</li>
-          </ul>
-        </div>
-
-        <div class="border-t border-slate-200 pt-4 mt-4">
-          <h3 class="text-lg font-bold text-blue-700 mb-2">7. บทลงโทษ</h3>
-          <ul class="list-disc list-inside space-y-1">
-            <li>ยกเลิกผลวิ่งระยะทางดังกล่าว</li>
-            <li>ตัดสิทธิ์สะสมระยะทางในกิจกรรม</li>
-            <li>ตัดสิทธิ์รางวัลหรือประกาศนียบัตร</li>
-          </ul>
-        </div>
-
-        <div class="border-t border-slate-200 pt-4 mt-4">
-          <h3 class="text-lg font-bold text-blue-700 mb-2">8. ข้อกำหนดอื่น ๆ</h3>
-          <ul class="list-disc list-inside space-y-1">
-            <li>ผลการตัดสินของทีมงานถือเป็นที่สุด</li>
-            <li>ผู้เข้าร่วมต้องปฏิบัติตามกติกาทุกข้ออย่างเคร่งครัด</li>
-          </ul>
-        </div>
-      </div>
-    `;
-
-    // ====== แสดงกติกา ======
-    showRulesBtn.addEventListener('click', () => {
-      Swal.fire({ title: 'กฎกติกาการแข่งขัน', html: rulesContent, width: '90%', showCloseButton: true, confirmButtonText: 'ปิด' });
-    });
-
-    // ====== พรีวิวรูป ======
-    imageInput.addEventListener('change', (event) => {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          imagePreview.src = e.target.result;
-          imagePreviewContainer.classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-      } else {
-        imagePreviewContainer.classList.add('hidden');
-        imagePreview.src = '#';
-      }
-    });
-
-    // ====== ส่งฟอร์มไป Apps Script ด้วย fetch (text/plain) ======
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
+    form.addEventListener('submit', () => {
       submitBtn.disabled = true;
       submitBtn.textContent = 'กำลังบันทึก...';
       Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    });
 
-      try {
-        const formData = new FormData(form);
-        const file = formData.get('imageProof');
+    // รับผลลัพธ์จาก Apps Script (ส่งมาทาง postMessage)
+    window.addEventListener('message', (event) => {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'บันทึกผลวิ่ง';
+      Swal.close();
 
-        // แปลงไฟล์เป็น base64 dataURL
-        const dataURL = await new Promise((resolve, reject) => {
-          const r = new FileReader();
-          r.onload = () => resolve(r.result);
-          r.onerror = reject;
-          r.readAsDataURL(file);
-        });
-
-        const payload = {
-          team: formData.get('teamName'),
-          name: formData.get('fullName'),
-          date: formData.get('runningDate'),
-          distance: formData.get('distance'),
-          note: formData.get('notes'),
-          fileData: dataURL,
-          fileName: file.name
-        };
-
-        const res = await fetch(WEB_APP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ตัด preflight
-          body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'บันทึกผลวิ่ง';
+      const data = event.data;
+      if (data && data.status === "success") {
         form.reset();
-        imagePreviewContainer.classList.add('hidden');
-
-        if (json.status === "success") {
-          Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: json.message, confirmButtonText: 'ตกลง' });
-        } else {
-          Swal.fire({ icon: 'error', title: 'ผิดพลาด!', text: json.message || 'ไม่สามารถบันทึกได้', confirmButtonText: 'ตกลง' });
-        }
-      } catch (err) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'บันทึกผลวิ่ง';
-        Swal.fire({ icon: 'error', title: 'ผิดพลาด!', text: String(err), confirmButtonText: 'ตกลง' });
+        Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: data.message, confirmButtonText: 'ตกลง' });
+      } else {
+        Swal.fire({ icon: 'error', title: 'ผิดพลาด!', text: data?.message || 'ไม่สามารถบันทึกได้', confirmButtonText: 'ตกลง' });
       }
     });
   </script>
